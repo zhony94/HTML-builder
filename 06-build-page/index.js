@@ -59,6 +59,44 @@ function copyDir (folderPath, copyFolderPath) {
         });
       });
     });
-  };
-  
-  copyDir(assetsFolderPath, assetsCopyFolderPath);
+};  
+
+copyDir(assetsFolderPath, assetsCopyFolderPath);
+
+// combine styles
+
+const stylesFolderPath = path.join(__dirname, 'styles');
+
+fs.access(path.join(__dirname, 'project-dist', 'style.css'), function(err){
+    if(err){
+        combineStyles();
+    }else{
+        fs.rm(path.join(__dirname, 'project-dist', 'style.css'), function(err){
+            if(err){
+                return console.error(err)
+            }
+            combineStyles();
+        })
+    }
+    
+})
+
+function combineStyles() {
+    const stream = new fs.WriteStream(path.join(__dirname, 'project-dist', 'style.css'), {'flags': 'a'});
+    fs.readdir(stylesFolderPath, {withFileTypes:true}, function(err, items){
+        items.forEach(element => {
+            if(element.isFile()){
+                const filePath = path.join(stylesFolderPath, element.name)
+                const fileExt = path.extname(filePath).slice(1);
+    
+                if(fileExt === 'css'){
+                    const readableStream = fs.createReadStream(filePath, "utf8");
+                    readableStream.on("data", function(chunk){ 
+                        stream.write(chunk + '\n\n')
+                    });
+                }
+            }
+        });
+        console.log('All styles have been copied to style.css')
+    })
+}
