@@ -100,3 +100,45 @@ function combineStyles() {
         console.log('All styles have been copied to style.css')
     })
 }
+
+//index.html
+
+const templatePath = path.join(__dirname, 'template.html');
+const indexPath = path.join(projectDistFolderPath, 'index.html');
+
+fs.copyFile(templatePath, indexPath, (err) => {
+    if (err) {
+      return console.error(err);
+    }
+  });
+  
+  fs.readFile(templatePath, 'utf-8', (err, templateCode) => {
+    if (err){
+        return console.log(err);
+    } 
+
+    const templateTags = templateCode.match(/{{\w+}}/gm);
+    
+    let htmlResult = templateCode;
+
+    for (let tag of templateTags) {
+      const tagPath = path.join(__dirname, 'components', `${tag.slice(2, -2)}.html`);
+  
+      fs.readFile(tagPath, 'utf-8', (err, dataTag) => {
+        if (err) {
+            return console.log(err);
+        } 
+  
+        htmlResult = htmlResult.replace(tag, dataTag);
+  
+        fs.rm(indexPath, { recursive: true, force: true }, (err) => {
+          if (err) {
+            return console.error(err);
+          }
+          const index = fs.createWriteStream(indexPath);
+          index.write(htmlResult);
+        });
+      });
+    }
+    console.log('index.html is generated')
+  });
