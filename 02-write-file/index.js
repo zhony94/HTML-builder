@@ -2,19 +2,23 @@ const fs = require('fs');
 const path = require('path');
 
 const stream = new fs.WriteStream(path.join(__dirname, "hello.txt"));
+const readline = require('readline');
+const { stdin: input, stdout: output } = require('process');
+const rl = readline.createInterface({ input, output });
 
-const {stdin, stdout} = process;
-
-
-stdout.write('Enter text:\n');
-stdin.on('data', data => {
+rl.write('Enter text:\n');
+rl.on('line', data => {
     let check = data.toString();
     if(check.trim() === 'exit'){
-        process.exit()
+      rl.write("Goodbye, Typed text was saved to hello.txt")
+      process.exit()
     }else{
-        stream.write(data)
+      stream.write(`${data}\n`)
     }
-    
 })
-process.on('exit', ()=> stdout.write("Typed text was saved to hello.txt"))
+
+rl.on('close', () => {
+  rl.write("Goodbye, Typed text was saved to hello.txt")
+  process.exit()
+});
 
